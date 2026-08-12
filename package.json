@@ -5,6 +5,14 @@
   "version": "0.1.0",
   "publisher": "thestacklab",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/asierralozano/ExternalLibrariesExtension.git"
+  },
+  "bugs": {
+    "url": "https://github.com/asierralozano/ExternalLibrariesExtension/issues"
+  },
+  "homepage": "https://github.com/asierralozano/ExternalLibrariesExtension#readme",
   "engines": {
     "vscode": "^1.84.0"
   },
@@ -143,7 +151,7 @@
     "compile": "npm run check-types && node esbuild.mjs --production",
     "watch": "node esbuild.mjs --watch",
     "check-types": "tsc --noEmit",
-    "package": "npm run compile && npx @vscode/vsce package --no-dependencies --allow-missing-repository"
+    "package": "npm run compile && npx @vscode/vsce package --no-dependencies"
   },
   "devDependencies": {
     "@types/node": "^20.11.30",

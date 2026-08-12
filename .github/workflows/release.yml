@@ -40,7 +40,7 @@ jobs:
           echo "vsix=external-libraries-$version.vsix" >> "$GITHUB_OUTPUT"
 
       - name: Package VSIX
-        run: npx --yes @vscode/vsce@3 package --no-dependencies --allow-missing-repository
+        run: npx --yes @vscode/vsce@3 package --no-dependencies
 
       - name: Verify the VSIX was produced
         run: test -f "${{ steps.meta.outputs.vsix }}"

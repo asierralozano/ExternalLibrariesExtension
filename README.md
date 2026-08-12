@@ -43,7 +43,8 @@ Built for a Rez pipeline, where `PYTHONPATH` routinely carries 30+ entries and
 Cursor uses OpenVSX, so this is a manual install — the extension is not
 published to any marketplace.
 
-**Grab the `.vsix` from [Releases](../../releases):**
+**Grab the `.vsix` from
+[Releases](https://github.com/asierralozano/ExternalLibrariesExtension/releases):**
 
 - **`Latest build`** — a rolling pre-release, rebuilt on every push to `main`.
   Bookmark this one to always get the newest build.
