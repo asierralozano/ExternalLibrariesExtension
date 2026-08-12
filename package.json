@@ -1,0 +1,154 @@
+{
+  "name": "external-libraries",
+  "displayName": "External Libraries",
+  "description": "PyCharm-style External Libraries tree for VS Code / Cursor: shows every folder Python resolves on sys.path (Rez-aware), read-only, and auto-reveals the active external file.",
+  "version": "0.1.0",
+  "publisher": "thestacklab",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.84.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Other"
+  ],
+  "keywords": [
+    "python",
+    "rez",
+    "sys.path",
+    "external libraries",
+    "site-packages"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "views": {
+      "explorer": [
+        {
+          "id": "externalLibraries.view",
+          "name": "External Libraries",
+          "icon": "$(library)",
+          "contextualTitle": "External Libraries"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "externalLibraries.refresh",
+        "title": "Refresh",
+        "category": "External Libraries",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "externalLibraries.groupByRez",
+        "title": "Group by Rez Packages",
+        "category": "External Libraries",
+        "icon": "$(list-tree)"
+      },
+      {
+        "command": "externalLibraries.groupByPath",
+        "title": "Show sys.path Resolution Order",
+        "category": "External Libraries",
+        "icon": "$(list-ordered)"
+      },
+      {
+        "command": "externalLibraries.revealActiveFile",
+        "title": "Reveal Active File",
+        "category": "External Libraries",
+        "icon": "$(target)"
+      },
+      {
+        "command": "externalLibraries.copyPath",
+        "title": "Copy Path",
+        "category": "External Libraries"
+      },
+      {
+        "command": "externalLibraries.revealInExplorer",
+        "title": "Reveal in File Explorer",
+        "category": "External Libraries"
+      },
+      {
+        "command": "externalLibraries.showLog",
+        "title": "Show Diagnostics Log",
+        "category": "External Libraries",
+        "icon": "$(output)"
+      },
+      {
+        "command": "externalLibraries.clearReadonlyGlobs",
+        "title": "Clear Read-only Globs Written to User Settings",
+        "category": "External Libraries"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "externalLibraries.groupByPath",
+          "when": "view == externalLibraries.view && externalLibraries.groupMode == rez",
+          "group": "navigation@1"
+        },
+        {
+          "command": "externalLibraries.groupByRez",
+          "when": "view == externalLibraries.view && externalLibraries.groupMode == path",
+          "group": "navigation@1"
+        },
+        {
+          "command": "externalLibraries.revealActiveFile",
+          "when": "view == externalLibraries.view",
+          "group": "navigation@2"
+        },
+        {
+          "command": "externalLibraries.refresh",
+          "when": "view == externalLibraries.view",
+          "group": "navigation@3"
+        },
+        {
+          "command": "externalLibraries.showLog",
+          "when": "view == externalLibraries.view",
+          "group": "9_extlib@1"
+        },
+        {
+          "command": "externalLibraries.clearReadonlyGlobs",
+          "when": "view == externalLibraries.view",
+          "group": "9_extlib@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "externalLibraries.copyPath",
+          "when": "view == externalLibraries.view && viewItem =~ /^externalLibraries\\.(root|dir|file|missing)$/",
+          "group": "9_cutcopypaste@1"
+        },
+        {
+          "command": "externalLibraries.revealInExplorer",
+          "when": "view == externalLibraries.view && viewItem =~ /^externalLibraries\\.(root|dir|file)$/",
+          "group": "9_cutcopypaste@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "externalLibraries.copyPath",
+          "when": "false"
+        },
+        {
+          "command": "externalLibraries.revealInExplorer",
+          "when": "false"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "npm run check-types && node esbuild.mjs --production",
+    "watch": "node esbuild.mjs --watch",
+    "check-types": "tsc --noEmit",
+    "package": "npm run compile && npx @vscode/vsce package --no-dependencies --allow-missing-repository"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "@types/vscode": "^1.84.0",
+    "esbuild": "^0.21.5",
+    "typescript": "^5.4.5"
+  }
+}
