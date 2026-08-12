@@ -40,10 +40,18 @@ Built for a Rez pipeline, where `PYTHONPATH` routinely carries 30+ entries and
 
 ## Install the `.vsix` in Cursor
 
-Cursor uses OpenVSX, so this is a manual install — it is not published anywhere.
+Cursor uses OpenVSX, so this is a manual install — the extension is not
+published to any marketplace.
 
-**From the UI:** Extensions panel → `…` menu → **Install from VSIX…** → pick
-`external-libraries-0.1.0.vsix` → reload the window.
+**Grab the `.vsix` from [Releases](../../releases):**
+
+- **`Latest build`** — a rolling pre-release, rebuilt on every push to `main`.
+  Bookmark this one to always get the newest build.
+- **`vX.Y.Z`** — permanent, immutable builds. Use these when you need everyone
+  on an identical, pinned version.
+
+**From the UI:** Extensions panel → `…` menu → **Install from VSIX…** → pick the
+downloaded file → reload the window.
 
 **From the command line:**
 
@@ -66,9 +74,25 @@ nothing to configure.
 
 ```bash
 npm install
-npm run compile
-npx @vscode/vsce package --no-dependencies --allow-missing-repository
+npm run package   # type-check, bundle with esbuild, and write the .vsix
 ```
+
+## Releasing
+
+`.github/workflows/release.yml` builds the `.vsix` on every push to `main` and
+publishes it:
+
+- the rolling **`latest`** pre-release is deleted and recreated each time, so its
+  download URL always serves the newest build;
+- a permanent **`v<version>`** release is cut only when the `version` in
+  `package.json` has not been released yet — existing releases are never
+  rewritten. **Bump `version` in `package.json` to cut a new pinned release.**
+
+Pull requests build the `.vsix` and attach it as a workflow artifact without
+touching any release. The workflow can also be run by hand from the **Actions**
+tab (**Run workflow**), which is how you publish the first release before `main`
+exists.
+
 
 ## Commands
 

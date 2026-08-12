@@ -1,0 +1,113 @@
+name: Build and Release VSIX
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Two pushes to main in quick succession would otherwise race each other while
+# recreating the rolling "latest" release.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check
+        run: npm run check-types
+
+      - name: Read package metadata
+        id: meta
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "vsix=external-libraries-$version.vsix" >> "$GITHUB_OUTPUT"
+
+      - name: Package VSIX
+        run: npx --yes @vscode/vsce@3 package --no-dependencies --allow-missing-repository
+
+      - name: Verify the VSIX was produced
+        run: test -f "${{ steps.meta.outputs.vsix }}"
+
+      # Always available, including for pull requests, so a build can be tested
+      # before it ever reaches a release.
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: external-libraries-vsix
+          path: ${{ steps.meta.outputs.vsix }}
+          if-no-files-found: error
+
+      # ------------------------------------------------------------------
+      # Releases. Skipped for pull requests.
+      # ------------------------------------------------------------------
+
+      # A rolling pre-release the team can bookmark: refreshed on every push to
+      # main, so its download URL always serves the newest build. Deleted and
+      # recreated rather than edited, because `gh release edit` cannot move an
+      # existing tag to the new commit.
+      - name: Refresh rolling "latest" pre-release
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VSIX: ${{ steps.meta.outputs.vsix }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          set -euo pipefail
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest "$VSIX" \
+            --target "$GITHUB_SHA" \
+            --prerelease \
+            --title "Latest build (v$VERSION)" \
+            --notes "Rolling build of the External Libraries extension, refreshed on every push to \`main\`.
+
+          | | |
+          |---|---|
+          | Version | \`$VERSION\` |
+          | Commit | ${GITHUB_SHA:0:7} |
+          | Built | $(date -u '+%Y-%m-%d %H:%M UTC') |
+
+          Install with \`cursor --install-extension $VSIX\` (or \`code --install-extension\`), then reload the window.
+
+          For a pinned, immutable build use the versioned release instead."
+
+      # A permanent, immutable release per version. Created only when the
+      # version in package.json has not been released yet, so existing releases
+      # are never rewritten under anyone's feet.
+      - name: Publish versioned release
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VSIX: ${{ steps.meta.outputs.vsix }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          set -euo pipefail
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            echo "Release v$VERSION already exists — leaving it untouched."
+            echo "Bump \"version\" in package.json to cut a new versioned release."
+            exit 0
+          fi
+          gh release create "v$VERSION" "$VSIX" \
+            --target "$GITHUB_SHA" \
+            --title "v$VERSION" \
+            --notes "External Libraries extension, version \`$VERSION\` (commit ${GITHUB_SHA:0:7}).
+
+          Install with \`cursor --install-extension $VSIX\` (or \`code --install-extension\`), then reload the window.
+
+          See the README for what the tree shows and the known limitations."
